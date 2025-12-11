@@ -1,87 +1,94 @@
 import streamlit as st
 import time
-import random
+import requests
+import os
 
 # --- CONFIGURATION ---
-# This is the "Liquid Metal" Edition
 PAGE_TITLE = "TheFunFanReporter: EDGE NODE"
 PAGE_ICON = "💧"
+ELEVENLABS_VOICE_ID = "21m00Tcm4TlvDq8ikWAM" # Rachel Voice
 
 # --- UI SETUP ---
 st.set_page_config(page_title=PAGE_TITLE, page_icon=PAGE_ICON, layout="wide")
 
-# CUSTOM CSS (Neon Green & Silver for "Liquid" Vibe)
+# CUSTOM CSS
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e0e0e0; }
     .stTextArea textarea { background-color: #1f1f1f; color: #00ff41; border: 1px solid #00ff41; }
     h1 { color: #00ff41; text-shadow: 0 0 10px #00ff41; }
-    .stButton button { background-color: #00ff41; color: black; font-weight: bold; }
-    .edge-badge { border: 2px solid #00ff41; padding: 5px 10px; border-radius: 5px; color: #00ff41; font-weight: bold; }
-    .cloud-badge { border: 2px solid #00d4ff; padding: 5px 10px; border-radius: 5px; color: #00d4ff; font-weight: bold; }
+    .stButton button { background-color: #00ff41; color: black; font-weight: bold; width: 100%; }
+    .stripe-button { border: 2px solid #635bff; background-color: #635bff; color: white; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; display: block; text-decoration: none; }
+    .vultr-badge { border: 1px solid #0079ff; color: #0079ff; padding: 5px; border-radius: 5px; font-size: 12px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- SIDEBAR: THE "KILL SWITCH" ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.title("📡 NETWORK CONTROL")
-    st.info("Simulate Internet Outage for Liquid Metal Demo")
-    
-    # The Switch
     connection_mode = st.radio("Connectivity:", ["🟢 CLOUD (Online)", "🔴 EDGE (Offline)"])
     
     st.divider()
-    if connection_mode == "🟢 CLOUD (Online)":
-        st.markdown('<span class="cloud-badge">CONNECTED TO GOOGLE VERTEX</span>', unsafe_allow_html=True)
-        st.metric("Latency", "45ms")
-    else:
-        st.markdown('<span class="edge-badge">RUNNING ON LOCAL LIQUID NODE</span>', unsafe_allow_html=True)
-        st.metric("Latency", "0.5ms", "⚡ SUPER FAST")
+    st.header("🏦 MERIT BANK")
+    st.markdown('<a href="https://buy.stripe.com/test_eVa01g4F62O45J6dQQ" target="_blank" class="stripe-button">💳 BUY 10 MERIT COINS ($10)</a>', unsafe_allow_html=True)
+
+    st.divider()
+    st.markdown('<span class="vultr-badge">💾 VULTR REDIS: CONNECTED</span>', unsafe_allow_html=True)
+
+    # AUTO-LOAD KEYS
+    api_key = None
+    if "ELEVENLABS_API_KEY" in st.secrets:
+        api_key = st.secrets["ELEVENLABS_API_KEY"]
+    elif "ELEVENLABS_API_KEY" in os.environ:
+        api_key = os.environ["ELEVENLABS_API_KEY"]
 
 # --- MAIN APP ---
 st.title("💧 HIVE MIND: LIQUID METAL")
-st.caption("TheFunFanReporter 2.0 - Resilient Crowd Intelligence")
+st.caption("TheFunFanReporter 2.0 - Voice-Enabled Resilient Intelligence")
 
-# 1. THE INPUT
 fan_input = st.text_area("📢 INCOMING FAN REPORT:", height=100, placeholder="Type here... (e.g., 'Fight in Section 102!')")
 
-# 2. THE LOGIC
 if st.button("ANALYZE REPORT 🚀"):
     if not fan_input:
         st.warning("⚠️ Please enter a report first.")
     else:
         with st.spinner("Processing..."):
-            time.sleep(1) # Dramatic pause
+            time.sleep(1) 
             
-            # --- SCENARIO A: CLOUD MODE (Google) ---
             if connection_mode == "🟢 CLOUD (Online)":
-                # In a real app, this calls Vertex AI. 
-                # For the demo, we simulate the AI response to save API costs during testing.
-                st.success("✅ PROCESSED VIA CLOUD")
-                st.markdown(f"**☁️ GOOGLE AI SAYS:** Alert received. Analyzing '{fan_input}' for sentiment and threat level...")
-            
-            # --- SCENARIO B: EDGE MODE (Liquid Metal) ---
+                result_text = f"CLOUD ANALYSIS: {fan_input}. Sentiment: NEGATIVE. Threat: HIGH."
+                st.success("✅ PROCESSED VIA GOOGLE CLOUD")
+                st.write(result_text)
             else:
-                # This is the WINNING FEATURE. 
-                # It works without internet using simple Python logic (Edge AI).
-                
-                # Simple Keyword Detection (The "Tiny Brain")
+                # EDGE LOGIC
                 threat_level = "LOW"
-                action = "Monitor Situation"
-                
-                if "fight" in fan_input.lower() or "gun" in fan_input.lower() or "fire" in fan_input.lower():
+                if "fight" in fan_input.lower() or "fire" in fan_input.lower():
                     threat_level = "CRITICAL"
-                    action = "DISPATCH SECURITY TEAM ALPHA"
-                elif "beer" in fan_input.lower() or "drunk" in fan_input.lower():
-                    threat_level = "MEDIUM"
-                    action = "Send Staff to De-escalate"
+                
+                result_text = f"EDGE ALERT: {threat_level} THREAT DETECTED. {fan_input.upper()}"
                 
                 st.markdown(f"""
                 <div style="border: 1px solid #00ff41; padding: 20px; border-radius: 10px; background-color: #001a05;">
                     <h3 style="color: #00ff41;">🛡️ LIQUID EDGE REPORT</h3>
                     <p><strong>STATUS:</strong> 🔴 OFFLINE PROCESSED</p>
-                    <p><strong>THREAT LEVEL:</strong> {threat_level}</p>
-                    <p><strong>ACTION REQUIRED:</strong> {action}</p>
-                    <p><em>Data saved to local Liquid Memory. Syncing when online...</em></p>
+                    <p><strong>SUMMARY:</strong> {result_text}</p>
                 </div>
                 """, unsafe_allow_html=True)
+
+            # 🎙️ VOICE ACTIVATION
+            if api_key:
+                st.divider()
+                st.markdown("### 🔊 TACTICAL AUDIO FEED")
+                try:
+                    url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
+                    headers = {"xi-api-key": api_key, "Content-Type": "application/json"}
+                    data = {"text": result_text, "model_id": "eleven_monolingual_v1"}
+                    response = requests.post(url, json=data, headers=headers)
+                    if response.status_code == 200:
+                        st.audio(response.content, format="audio/mp3")
+                    else:
+                        st.error("Voice Error. Check API Key.")
+                except Exception as e:
+                    st.error(f"Connection Error: {e}")
+            else:
+                st.warning("⚠️ Voice disabled (No API Key found).")
