@@ -2,16 +2,34 @@ import streamlit as st
 import time
 import requests
 import os
+import redis 
+from dotenv import load_dotenv # 👈 THE CRITICAL FIX
+
+# 1. IGNITION: Load the .env file immediately (Works locally)
+load_dotenv()
 
 # --- CONFIGURATION ---
 PAGE_TITLE = "TheFunFanReporter: EDGE NODE"
 PAGE_ICON = "💧"
 ELEVENLABS_VOICE_ID = "21m00Tcm4TlvDq8ikWAM" # Rachel Voice
 
+# --- VULTR REDIS CONNECTION (The Hive Memory) ---
+try:
+    # Check Streamlit Secrets first, then local .env
+    redis_url = os.environ.get("VULTR_REDIS_URL")
+    if redis_url:
+        r = redis.from_url(redis_url)
+        r.ping() 
+        VULTR_STATUS = "CONNECTED 🟢"
+    else:
+        VULTR_STATUS = "NOT FOUND 🔴 (Check Secrets/Env)"
+except Exception as e:
+    VULTR_STATUS = f"ERROR: {e}"
+
 # --- UI SETUP ---
 st.set_page_config(page_title=PAGE_TITLE, page_icon=PAGE_ICON, layout="wide")
 
-# CUSTOM CSS
+# CUSTOM CSS (Cyberpunk Theme)
 st.markdown("""
     <style>
     .stApp { background-color: #0e1117; color: #e0e0e0; }
@@ -29,18 +47,23 @@ with st.sidebar:
     connection_mode = st.radio("Connectivity:", ["🟢 CLOUD (Online)", "🔴 EDGE (Offline)"])
     
     st.divider()
+    
+    # 💳 STRIPE ECONOMY (Safe Link)
     st.header("🏦 MERIT BANK")
-    st.markdown('<a href="https://buy.stripe.com/test_eVa01g4F62O45J6dQQ" target="_blank" class="stripe-button">💳 BUY 10 MERIT COINS ($10)</a>', unsafe_allow_html=True)
+    st.markdown('<a href="https://buy.stripe.com/test_eVa01g4F62O45J6dQQ" target="_blank" class="stripe-button">💳 BUY 10 MERIT COINS ($72.50)</a>', unsafe_allow_html=True)
 
     st.divider()
-    st.markdown('<span class="vultr-badge">💾 VULTR REDIS: CONNECTED</span>', unsafe_allow_html=True)
+    
+    # 💾 VULTR STATUS
+    st.header("💾 HIVE MEMORY")
+    st.markdown(f'<span class="vultr-badge">VULTR REDIS: {VULTR_STATUS}</span>', unsafe_allow_html=True)
 
-    # AUTO-LOAD KEYS
-    api_key = None
-    if "ELEVENLABS_API_KEY" in st.secrets:
-        api_key = st.secrets["ELEVENLABS_API_KEY"]
-    elif "ELEVENLABS_API_KEY" in os.environ:
-        api_key = os.environ["ELEVENLABS_API_KEY"]
+    # CHECK ELEVENLABS KEY
+    api_key = os.environ.get("ELEVENLABS_API_KEY")
+    if api_key:
+        st.caption("🎙️ Voice Module: ACTIVE")
+    else:
+        st.error("🎙️ Voice Module: MISSING KEY")
 
 # --- MAIN APP ---
 st.title("💧 HIVE MIND: LIQUID METAL")
@@ -55,6 +78,7 @@ if st.button("ANALYZE REPORT 🚀"):
         with st.spinner("Processing..."):
             time.sleep(1) 
             
+            # LOGIC
             if connection_mode == "🟢 CLOUD (Online)":
                 result_text = f"CLOUD ANALYSIS: {fan_input}. Sentiment: NEGATIVE. Threat: HIGH."
                 st.success("✅ PROCESSED VIA GOOGLE CLOUD")
@@ -83,11 +107,13 @@ if st.button("ANALYZE REPORT 🚀"):
                     url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
                     headers = {"xi-api-key": api_key, "Content-Type": "application/json"}
                     data = {"text": result_text, "model_id": "eleven_monolingual_v1"}
+                    
                     response = requests.post(url, json=data, headers=headers)
+                    
                     if response.status_code == 200:
                         st.audio(response.content, format="audio/mp3")
                     else:
-                        st.error("Voice Error. Check API Key.")
+                        st.error(f"Voice Error: {response.text}")
                 except Exception as e:
                     st.error(f"Connection Error: {e}")
             else:
