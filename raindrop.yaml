@@ -1,0 +1,33 @@
+# LIQUID METAL RAINDROP CONFIGURATION
+name: the-fun-fan-reporter-liquid
+version: 2.0.0
+region: us-west-1
+
+# 🧠 SMART MEMORY (The Winning Feature)
+# This tells the platform to retain chat context at the Edge
+memory:
+  fan_context:
+    type: episodic
+    retention: 24h
+    storage: vultr_managed_redis
+
+# ⚡ EDGE FUNCTION CONFIGURATION
+services:
+  hive_mind:
+    runtime: python:3.9
+    handler: hive_mind.py
+    scale:
+      min: 1
+      max: 100
+    
+    # 🔐 SECURE CONNECTIONS
+    environment:
+      - VULTR_REDIS_URL: ${VULTR_REDIS_URL}
+      - ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY}
+      - STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+
+# 🏗️ INTEGRATIONS
+integrations:
+  vultr:
+    service: managed_redis
+    plan: startup-1gb
